@@ -1,0 +1,273 @@
+---
+  title: "MA335 - Final Project"
+author: '2211553'
+date: "`r format(Sys.Date(), '%d-%m-%Y')`"
+subtitle: |
+  Word count: 0
+header-includes:
+  \usepackage{fvextra}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{breaklines,commandchars=\\\{\}}
+geometry: "left=3cm,right=3cm,bottom=2.5cm,top=2.5cm"
+fontsize: 12pt
+linestretch: 1.5
+output: 
+  pdf_document:
+  toc: true
+documentclass: report
+mainfont: "Times New Roman"
+always_allow_html: true
+---
+  
+  # Introduction
+  
+  In this analysis we are going to find the relationship between various characteristics of Alzheimer's diseases and the diagnosis of Alzheimer's (**Demented**) or Non-Alzheimer's(**Non-Demented**) individuals. The goal here is to analyze dataset containing relevant information and provide insights to the relationship between the characteristics. Analysis will be carried in several steps, mentioning specific tasks and which includes performing descriptive statistics, implementing clustering algorithms, fitting a logistic regression to predict the variable and implementing a feature selection method to find important features. Results from the analysis will be presented in tables, graphs and statistical models. This analysis will be explained in detail with justified methods.
+
+## Analysis of Dataset and Data Preprocessing
+
+There are 10 columns for 350 individuals, **Group** column with being diagnosis and rest of the columns are supporting factors for diagnosis. (**like:**M.F, Age, CDR-Clinical dementia rating, eTIV-**Estimated total intracranial volume**, nWBV-**Normalize whole brain volume**)
+
+**Data processing**\
+- Remove **"Converted"** class from the dataset\
+- Convert **Group** & **M.F** column to numerical data\
+- Replace the missing values in SES and MMSE(using **median**)\
+- Standardizing the values for eTIV, nWBV, ASF\
+
+# Analysis
+
+## Descriptive Statistics
+
+The analysis explores the relationship between gender and socioeconomic status (SES) from dataset "proj_data." The bar plot shows how the SES is distributed based on gender in general. The graphic displays the number of observations for every possible SES and gender combination. Gender is represented on the x-axis. The number of observations is shown on the y-axis. The SES level is indicated by a color that is displayed for each bar. The SES levels are represented by a color scale from green to red.\
+Scatterplot matrix shows a thorough analysis of the connections between the variables. The first, second, and seventh columns of the dataset are not included in the scatterplot matrix used in this study. In a pairwise fashion, each variable is plotted against every other variable. Histograms are shown to show the distribution of each variable along the diagonal. Each scatterplot includes linear regression lines that shed light on the interrelationship of the variables. The correlation coefficients between the variables are also shown, and the degree of significance is denoted by significance stars.\
+
+### **Conclusion**
+
+The grouped bar plot, which is based on the analysis, shows how the SES levels are distributed among the various genders and helps comprehend the socio-economic differences. The scatter plot matrix provides a thorough overview of the connections between the dataset's variables, enabling additional investigation and analysis. The data can be understood, and potential patterns and correlations can be found with the help of these visualizations.\
+
+## Clustering Algorithm
+
+**Hierarchical Clustering** The ward linkage approach produces a dendrogram. The hierarchical clustering tree is built using the dataset(proj_data) and the agnes function once more. The dendrogram is plotted using the ptree function from the cluster package. The dendrogram's text size, hang level, and title are all controlled by the parameters cex, hang, and main, respectively.\
+Using the hclust function from the stats package, hierarchical clustering is carried out on the scaled "proj_data". The "euclidean" approach is used to calculate the distance matrix. The hierarchical clustering model is developed using the factoextra library's eclust function. Two clusters are obtained by setting the k parameter to 2.\
+
+### **Conclusion**
+
+The grouped bar plot, which is based on the analysis, shows how the SES levels are distributed among the various genders and helps comprehend the socio-economic differences. The scatterplot matrix provides a thorough overview of the connections between the dataset's variables, enabling additional investigation and analysis. The data can be understood, and potential patterns and correlations can be found with the help of these visualizations.\
+
+## Logistic Regression
+
+The initial_split function from the rsample library is used to divide the "proj_data" dataset into training and test data sets. 80% of the training data and 20% of the test data are split, respectively. To guarantee a fair representation of the classes in both the training and test sets, the stratum parameter is set to "Group".\
+Using the logistic_reg function from the parsnip library, a logistic regression model is trained on the training set of data. The model is set up with a double (1) mixing parameter and a double (1) penalty parameter. The "glmnet" engine, which applies the glmnet algorithm for logistic regression, is specified using the set_engine function. To signal that the task is classification, the set_mode function is set to "classification".\
+The trained logistic regression model (model_training) is utilised to create class predictions for the test data using the predict function. The data on which predictions should be made are indicated by setting the new_data option to test_data. To get the expected class labels, the type option is set to "class".\
+The predicted class labels from the previous step are combined with the actual class labels from the test data. The conf_mat function from the yardstick library is used to compute a confusion matrix. The truth parameter is set to "Group" to indicate the true class labels, and the estimate parameter is set to ".pred_class" to specify the predicted class labels. The confusion matrix provides an overview of the model's performance, showing the counts of true positive, true negative, false positive, and false negative predictions.\
+
+### **Conclusion**
+
+Using the training model, the logistic regression analysis correctly categorized the test data. The model coefficients shed light on how the binary outcome and the predictor variables interact. The confusion matrix makes it possible to assess the effectiveness of the classification process by giving details about the precision of the predictions and the existence of any misclassifications.\
+
+## Feature Selection
+
+The RFE analysis's findings are kept in the output lmdata. It offers details on the chosen features, their rankings, and their performance indicators. The findings aid in determining the best subset of features based on cross-validation and the random forest algorithm for predicting the "Group" variable.\
+The RFE analysis is carried out using the rfe function from the caret package. The target variable "Group" from the "proj_data" dataset is set as the y parameter, with the x parameter set to the feature subset matrix (proj_data[2:10]). For the purpose of comparing the effectiveness of various feature subsets, the sizes parameter is set to the predefined subsets (3, 4, and 5). The control settings previously stated are specified by the value of the rfeControl parameter, which is set to ctrl.\
+
+### **Conclusion**
+
+The best selection of features for predicting the "Group" variable in the "proj_data" dataset is found by RFE analysis using the random forest algorithm and repeated cross-validation. The analysis takes into account several feature subsets and assesses their effectiveness using performance metrics. The findings shed light on the significance and predictive ability of various features, assisting in the choice of the most illuminating factors for the classification assignment.\
+
+## Appendix - R code
+
+```{r echo=TRUE, error=FALSE, warning=FALSE, message=FALSE, comment=NULL, results='asis'}
+# set the working directory
+setwd("C:/Users/HP/OneDrive/Desktop/UNI_SUBJ/Modeling MA335/final proj")
+
+# import required libraries
+library(dplyr)
+library(ggplot2)
+library(plotly)
+library(psych)
+library(colorRamps)
+library(factoextra)
+library(cluster)
+library(tidymodels)
+library(caret)
+library(randomForest)
+library(knitr)
+library(modelsummary)
+
+# read the csv data into data frame
+data_1 <- read.csv("project data.csv")
+
+kable(data_1[1:3, ], caption = "Project data") %>%
+  kableExtra::kable_styling(bootstrap_options = "bordered")
+
+# Data cleaning
+
+proj_data = filter(data_1, !data_1$Group=="Converted")
+
+proj_data$Group <- factor(proj_data$Group,
+                          levels = c("Demented", "Nondemented"),
+                          labels = c(2, 1))
+
+proj_data$M.F <- factor(proj_data$M.F,
+                        levels = c("M","F"),
+                        labels = c(1,0))
+
+# Replacing missing values
+proj_data$SES[is.na(proj_data$SES)] <- median(proj_data$SES, na.rm = TRUE)
+proj_data$MMSE[is.na(proj_data$MMSE)] <- median(proj_data$MMSE, na.rm = TRUE)
+
+# Standardizing the values
+proj_data$eTIV <- (proj_data$eTIV-mean(proj_data$eTIV))/ sd(proj_data$eTIV)
+proj_data$nWBV <- (proj_data$nWBV-mean(proj_data$nWBV))/ sd(proj_data$nWBV)
+proj_data$ASF <- (proj_data$ASF-mean(proj_data$ASF))/ sd(proj_data$ASF)
+
+kable(proj_data[1:3, ], caption = "Pre-processed data") %>%
+  kableExtra::kable_styling(bootstrap_options = "bordered")
+```
+
+```{r echo=TRUE, error=FALSE, warning=FALSE, message=FALSE, comment=NULL, results='asis'}
+# Descriptive Analysis
+
+# Count of patients grouped by SES on Gender
+proj_data %>% select(Age, M.F, SES) %>%
+  group_by(SES, M.F) %>% count() %>%
+  ggplot(aes(x = M.F, y = n, fill = as.factor(SES))) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_x_discrete(labels= c("Male", "Female")) +  
+  scale_fill_manual(values = colorRamps::green2red(5)) +
+  coord_flip() +
+  theme_classic() +
+  labs(title = "SES Based on Gender", x = "Gender", y ="Count", fill = "SES")
+
+```
+
+```{r echo=TRUE, error=FALSE, warning=FALSE, message=FALSE, comment=NULL, results='asis'}
+# Plot for correlation
+pairs.panels(
+  proj_data[, -c(1,2,7)],
+  gap=0,
+  lm=TRUE,
+  stars = TRUE,
+  hist.col = 4
+)
+
+```
+
+```{r echo=TRUE, error=FALSE, warning=FALSE, message=FALSE, comment=NULL, results='asis'}
+
+#Hierarchical clustering
+
+# Vector containing linkage methods to choose from
+linkage_methods <- c("average","single","complete","ward")
+names(linkage_methods) <- c("average","single","complete","ward")
+
+# Function to calculate agglomerative clusters
+ag_coefficient <- function(x){
+  agnes(proj_data, method = x)$ac
+}
+
+# Print the cluster values for each method
+kable(sapply(linkage_methods, ag_coefficient)) %>%
+  kableExtra::kable_styling(bootstrap_options = "bordered")
+
+# Perform agglomerative clustering using the method with the highest score
+cluster <- agnes(proj_data, method = "ward")
+
+# Visualize the dendogram for the clustering performed
+pltree(cluster, cex = 0.6, hang = -1, main = "Dendrogram")
+
+```
+
+```{r echo=TRUE, error=FALSE, warning=FALSE, message=FALSE, comment=NULL, results='asis'}
+
+# Calculate the gap value to find the optimal number of clusters to use
+gap_statistic <- clusGap(data.matrix(proj_data), FUNcluster = hcut, nstart = 10, K.max = 4)
+
+# visualize the optimal number of clusters
+fviz_gap_stat(gap_statistic)
+
+```
+
+```{r echo=TRUE, error=FALSE, warning=FALSE, message=FALSE, comment=NULL, results='asis'}
+
+# Create the distance matrix for each data point using the euclidean method
+dist_matrix <- dist(scale(data.matrix(proj_data)), method = "euclidean")
+
+# Perform hierarchical clustering
+hclust_model <- eclust(dist_matrix, 
+                       "hclust", 
+                       k = 2, 
+                       stand = T, 
+                       hc_method = "ward.D2")
+
+# Segment the hierarchical clustering tree to the required number of clusters
+group_final <- cutree(hclust_model, k=2)
+
+# Print the cluster output
+kable(table(group_final, proj_data$Group), caption = "Clustering groups") %>%
+  kableExtra::kable_styling(bootstrap_options = "bordered")
+
+# Visualize the clusters
+fviz_cluster(
+  object = hclust_model,
+  geom = "point",
+  ellipse.type = "norm",
+  show.clust.cent = T, 
+  repel = T,
+  main = "Clusters of Group (Demented, Non-Demented)",
+  ggtheme = theme_classic()
+)
+
+```
+
+```{r echo=TRUE, error=FALSE, warning=FALSE, message=FALSE, comment=NULL, results='asis'}
+
+# Logistic regression
+
+# Split into train and test data
+split_data <- initial_split(proj_data, prop = 0.8, strata = Group)
+
+train_data <- split_data %>% training()
+test_data <- split_data %>% testing()
+
+# Training logistic regression model
+model_training <- logistic_reg(mixture = double(1), penalty = double(1)) %>%
+  set_engine("glmnet") %>%
+  set_mode("classification") %>%
+  fit(Group ~ ., data = train_data)
+
+kable(tidy(model_training)) %>%
+  kableExtra::kable_styling(bootstrap_options = "bordered")
+
+# Predicting the class on test data
+pred_class <- predict(model_training, 
+                      new_data = test_data,
+                      type = "class")
+
+# Combine the actual and predicted response variable (Group)
+results <- test_data %>% select(Group) %>% bind_cols(pred_class)
+
+# Plot the confusion matrix for the test data
+autoplot(conf_mat(results, truth = Group, estimate = .pred_class), type = "heatmap")
+
+```
+
+```{r echo=TRUE, error=FALSE, warning=FALSE, message=FALSE, comment=NULL, results='asis'}
+# Feature selection
+
+# Vector containing the number of features wanted
+subsets <- c(3,4,5)
+
+# Function specifying the cross validation options to be used for feature selection 
+ctrl <- rfeControl(functions = rfFuncs,
+                   method = "repeatedcv",
+                   repeats = 10,
+                   verbose = F)
+
+# Calculate the significance and return the top features
+lmdata <- rfe(x=proj_data[2:10], y=proj_data$Group,
+              sizes = subsets,
+              rfeControl = ctrl)
+
+# Print the selected top features
+lmdata
+
+```
